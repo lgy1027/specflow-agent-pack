@@ -40,11 +40,17 @@ SpecFlow 是一组面向 FDE、产品经理和研发团队的 Agent Skills，用
 
 ### 安装
 
-需要 Node.js 22.20 或更新版本。在项目仓库根目录运行，可将 Skills 安装到 Claude Code、Codex 和 Hermes Agent 的当前项目：
+需要 Node.js 22.20 或更新版本。使用 [skills CLI](https://www.skills.sh/docs/cli)，可从 GitHub 直接安装单个 Skill 或整套技能：
 
 ```powershell
-npx skills add . --skill "*" -a claude-code -a codex -a hermes-agent --copy -y
+# 先试用需求探索
+npx skills add lgy1027/specflow-agent-pack --skill probe -a codex
+
+# 或安装整套 Skills
+npx skills add lgy1027/specflow-agent-pack --skill "*" -a claude-code -a codex -a hermes-agent --copy -y
 ```
+
+省略 `-a` 可按 CLI 提示选择 Agent。若要从本地克隆目录安装，把仓库地址替换为 `.` 并在仓库根目录运行。
 
 DeepSeek Harness 和 WorkBuddy 的加载方式不同，WorkBuddy 还需要平台专用元数据。请参考[跨 Agent 安装说明](INSTALLATION.md)。安装说明描述的是加载方式，不代表每种客户端或企业环境都已完成实测。
 
