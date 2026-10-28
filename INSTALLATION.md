@@ -47,6 +47,10 @@ WorkBuddy 通过 Open Platform 的 Skill Marketplace 管理 Skills：进入 **Ex
 
 WorkBuddy 适配完成后，每个 Skill 单独打包或通过平台创建流程导入，确保其 `SKILL.md` 与对应的参考/资源文件保持同一目录结构。导入后在 Skill Marketplace 安装，再在对话中用对应场景验证是否能加载引用文件。官方说明：[WorkBuddy Skill 文档](https://open.workbuddy.cn/en/docs/skill)。
 
+### 更新适配副本
+
+适配副本与通用源文件分开维护。更新时先记录上游提交号/版本，再把对应 Skill 的源文件与 WorkBuddy 副本逐项比较；保留 WorkBuddy 元数据和路径改动，将上游逻辑更新合并到副本后重新导入并验证 `@references/...` 与模板资源能加载。不要直接用上游目录覆盖已适配副本。当前仓库不提供自动同步脚本，避免把平台专用转换规则固化进通用 Skill；若团队开始重复执行这一流程，再考虑增加可复现的打包脚本。
+
 ## 验证安装
 
 在新会话中分别确认：
