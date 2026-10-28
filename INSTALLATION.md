@@ -1,6 +1,6 @@
 # 安装到不同 Agent
 
-SpecFlow 的每个 `skills/<name>/` 目录都是一个独立 Skill。安装时复制整个 Skill 目录，保留其中的 `SKILL.md`、`references/` 和 `assets/`；只复制 `SKILL.md` 会丢失按需参考和原型模板。
+SpecFlow 的每个 `skills/<name>/` 目录都是一个独立 Skill。安装时复制整个 Skill 目录，保留其中的 `SKILL.md`、`references/` 和 `templates/`；只复制 `SKILL.md` 会丢失按需参考和模板文件。
 
 以下命令默认在完整源码仓库根目录执行。
 
@@ -43,7 +43,7 @@ Get-ChildItem $skillsSource -Directory | ForEach-Object {
 
 WorkBuddy 通过 Open Platform 的 Skill Marketplace 管理 Skills：进入 **Experts → Skills → Connectors → Skills**，再使用 **Add Skill / Create Skill** 流程。平台文档描述了 `SKILL.md`、ZIP 解析和参考/模板目录，但没有证明当前这套源文件已经在你的 WorkBuddy 租户中导入成功。
 
-**现有文件不能原样当作 WorkBuddy 成品包。**WorkBuddy 文档要求额外的展示元数据，包括 `display_name`、`display_name_en`、`description_zh`、`description_en`、`version` 和 `author`；参考资料按它的格式通过 `@references/...` 引用。当前核心 Skill 保持通用 Agent Skills 格式，因此应制作独立的 WorkBuddy 兼容副本并保留原始目录，不要为某个平台改坏通用源文件。`/proto` 的 HTML/Python 起始模板位于 `assets/`，WorkBuddy 文档示例使用 `templates/`；打包前需按该平台实际支持的资源目录适配并试导入。
+**现有文件不能原样当作 WorkBuddy 成品包。**WorkBuddy 文档要求额外的展示元数据，包括 `display_name`、`display_name_en`、`description_zh`、`description_en`、`version` 和 `author`；参考资料按它的格式通过 `@references/...` 引用。当前核心 Skill 保持通用 Agent Skills 格式，因此应制作独立的 WorkBuddy 兼容副本并保留原始目录，不要为平台元数据或引用语法改写通用源文件。原型起始模板现位于 `templates/`，但导入后仍需按平台实际行为验证模板和参考文件能否加载。
 
 WorkBuddy 适配完成后，每个 Skill 单独打包或通过平台创建流程导入，确保其 `SKILL.md` 与对应的参考/资源文件保持同一目录结构。导入后在 Skill Marketplace 安装，再在对话中用对应场景验证是否能加载引用文件。官方说明：[WorkBuddy Skill 文档](https://open.workbuddy.cn/en/docs/skill)。
 
@@ -57,7 +57,7 @@ WorkBuddy 适配完成后，每个 Skill 单独打包或通过平台创建流程
 
 1. Skill 出现在 Agent 的 Skills 列表中，或能通过名称显式调用；
 2. 运行 `/probe` 时可读取 `references/interrogation-library.md` 等被引用的文件；
-3. 运行 `/proto` 时能访问 `assets/` 中的模板（仅在原型问题需要时）。
+3. 运行 `/proto` 时能访问 `templates/` 中的模板（仅在原型问题需要时）。
 
 不同 Agent 的安装目录和打包要求可能变化，导入后请在新会话验证 Skill 与参考文件是否能加载。提交客户材料前，先完成脱敏并确认授权。
 

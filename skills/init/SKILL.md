@@ -23,7 +23,7 @@ description: 按需检查项目上下文并建立带证据来源、置信度和�
 
 ## 输出
 
-只有用户需要可复用画像，或后续任务确实依赖跨任务工程事实时，才在仓库根目录 `.agents/project-profile.md` 创建/更新画像。需要生成画像时，按需读取 [`assets/project-profile.template.md`](assets/project-profile.template.md) 并适配项目；模板不可用时可按下方字段结构创建，不要因此阻断当前任务。已有画像先保留人工填写内容，只更新有证据支持的字段并标出冲突，禁止静默覆盖。
+只有用户需要可复用画像，或后续任务确实依赖跨任务工程事实时，才在仓库根目录 `.agents/project-profile.md` 创建/更新画像。需要生成画像时，按需读取 [`templates/project-profile.template.md`](templates/project-profile.template.md) 并适配项目；模板不可用时可按下方字段结构创建，不要因此阻断当前任务。已有画像先保留人工填写内容，只更新有证据支持的字段并标出冲突，禁止静默覆盖。
 
 输出简报：
 
