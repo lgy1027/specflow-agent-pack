@@ -1,0 +1,29 @@
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Agent-local installations; canonical sources stay under skills/
+.agents/skills/
+.claude/skills/
+.hermes/skills/
+.dsh/skills/
+
+# Optional project outputs
+.agents/project-profile.md
+prototypes/
+
+# Internal competition material; not part of the public release
+contest/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

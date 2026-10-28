@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpecFlow 业务交互原型 (模拟校验演示)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 图标库 -->
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        rel="stylesheet">
+    <style>
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background-color: #1e293b;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .markdown-body td {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .markdown-body strong {
+            color: #818cf8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- 顶部状态栏 -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex justify-between items-center shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+            <h1 class="text-base font-bold tracking-wide">SpecFlow 业务交互原型</h1>
+            <span
+                class="text-xs px-2 py-0.5 bg-indigo-900/80 text-indigo-300 rounded border border-indigo-700 font-mono">Prototype
+                Demo Only</span>
+        </div>
+        <div class="text-xs flex items-center space-x-6">
+            <span class="text-slate-400">状态机: <strong id="current-state"
+                    class="text-amber-400 font-mono">IDLE</strong></span>
+            <span class="text-slate-400">当前模式: <strong id="current-engine-label"
+                    class="text-emerald-400 font-mono">仿真离线引擎</strong></span>
+        </div>
+    </header>
+
+    <!-- 主展示区 -->
+    <main class="flex-1 flex overflow-hidden">
+
+        <!-- 左侧：核心业务流式舞台 -->
+        <section class="flex-1 p-6 flex flex-col h-full overflow-hidden">
+            <div
+                class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex-1 flex flex-col shadow-2xl overflow-hidden">
+
+                <!-- 1. 输入控制栏 -->
+                <div class="mb-4 shrink-0">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">业务场景输入 (Input
+                            Prompt)</label>
+                        <span id="input-hint" class="text-xs text-indigo-400">当前场景: 正常研发周会纪要</span>
+                    </div>
+                    <p class="text-[10px] text-amber-300 mb-2">固定模拟样例；资源数字是需求输入，不是测量结果。</p>
+                    <div class="flex space-x-3">
+                        <textarea id="user-input" rows="2"
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 text-slate-200 resize-none font-sans leading-relaxed">讨论关于 C1 NAS 边缘端模型加载的优化：张工负责下周三前调优 OpenVINO 算子，李工负责对接 SSE 流式协议，陈总要求整体内存占用严格控制在 2GB 以内。</textarea>
+                        <button onclick="handleTriggerExecution()" id="btn-run"
+                            class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 rounded-lg text-sm font-semibold transition flex flex-col justify-center items-center shrink-0 shadow-lg shadow-indigo-600/30">
+                            <i class="fa-solid fa-bolt mb-1"></i>
+                            <span>开始分析</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. 核心流式结果面板 -->
+                <div
+                    class="flex-1 bg-slate-950 rounded-lg border border-slate-800 p-5 flex flex-col overflow-y-auto relative">
+
+                    <!-- Demo state indicator -->
+                    <div id="status-indicator"
+                        class="hidden mb-4 p-3 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-between shrink-0">
+                        <div class="flex items-center space-x-3">
+                            <div
+                                class="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            <span id="status-text" class="text-xs text-indigo-300 font-mono">正在解析输入结构与上下文...</span>
+                        </div>
+                        <span id="harness-badge"
+                            class="hidden text-[10px] px-2 py-0.5 bg-amber-950 border border-amber-700 text-amber-300 rounded font-mono">Demo Check
+                            正在校验契约合规性</span>
+                    </div>
+
+                    <!-- 动态内容渲染容器 (Markdown 编译后的业务结果) -->
+                    <div id="result-workspace" class="flex-1 flex flex-col justify-center items-center text-slate-500">
+                        <i class="fa-solid fa-brain text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-xs text-slate-500">等待触发... 请在输入框确认需求后点击“开始分析”</p>
+                    </div>
+                </div>
+
+                <!-- 底部协议抽屉 -->
+                <details class="mt-2 shrink-0 text-slate-500 text-xs">
+                    <summary class="cursor-pointer hover:text-slate-300 select-none py-1">
+                        <i class="fa-solid fa-terminal mr-1"></i> 查看演示事件日志（不代表服务端门禁）
+                    </summary>
+                    <div id="sse-dump"
+                        class="mt-1 p-2 bg-slate-950 rounded border border-slate-800 text-[10px] font-mono text-emerald-400 h-24 overflow-y-auto leading-relaxed">
+                        > Ready.
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- 右侧：紧凑控制台 -->
+        <aside
+            class="w-[340px] shrink-0 bg-slate-900 border-l border-slate-800 p-5 flex flex-col space-y-6 overflow-y-auto">
+
+            <!-- 演示场景切换 -->
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3 flex items-center">
+                    <i class="fa-solid fa-sliders mr-2"></i> 业务场景模拟
+                </h3>
+                <div class="space-y-2">
+                    <button onclick="selectScenario('happy')" id="sc-happy"
+                        class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs bg-indigo-950 border border-indigo-700 text-indigo-200 font-medium transition">
+                        🟢 场景 1：正常命中 (高置信度)
+                    </button>
+                    <button onclick="selectScenario('edge')" id="sc-edge"
+                        class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 transition">
+                        🟡 场景 2：需求冲突预警 (需人工裁决)
+                    </button>
+                    <button onclick="selectScenario('fallback')" id="sc-fallback"
+                        class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 transition">
+                        🔴 场景 3：设备繁忙 (优雅降级)
+                    </button>
+                </div>
+            </div>
+
+            <!-- 推理模式与 API 配置 -->
+            <div class="pt-4 border-t border-slate-800">
+                <label class="block text-xs text-slate-400 mb-1.5 font-medium">推理执行模式</label>
+                <select id="engine-mode-select" onchange="toggleEngineMode()"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="mock">模拟回放（不调用模型；页面样式资源需联网）</option>
+                    <option value="real">临时 Key 直连（仅脱敏演示数据）</option>
+                </select>
+
+                <!-- Direct provider demo: use only a temporary personal key and sanitized input. -->
+                <div id="real-api-config"
+                    class="hidden mt-3 p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-2.5">
+                    <p class="text-[10px] text-amber-300">直连会将输入发送到所填服务商。仅使用临时个人 Key 和脱敏数据；勿使用公司生产凭据或客户敏感数据。</p>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">API Base URL</label>
+                        <input id="api-base" type="text"
+                            value="https://api.deepseek.com/v1"
+                            class="w-full bg-slate-900 border border-slate-700 text-xs px-2.5 py-1.5 rounded text-slate-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">临时个人 API Key（不会保存）</label>
+                        <input id="api-key" type="password" placeholder="sk-..."
+                            class="w-full bg-slate-900 border border-slate-700 text-xs px-2.5 py-1.5 rounded text-slate-200 font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Model Name</label>
+                        <input id="model-name" type="text" value="deepseek-chat"
+                            class="w-full bg-slate-900 border border-slate-700 text-xs px-2.5 py-1.5 rounded text-slate-200 font-mono">
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <script>
+        let currentMode = 'mock';
+        let currentScenario = 'happy';
+
+        const scenarios = {
+            happy: {
+                title: "正常研发周会纪要",
+                input: "讨论关于 C1 NAS 边缘端模型加载的优化：张工负责下周三前调优 OpenVINO 算子，李工负责对接 SSE 流式协议，陈总要求整体内存占用严格控制在 2GB 以内。",
+                steps: ["模拟提取任务与负责人...", "模拟检查资源假设...", "生成示例结构化清单..."],
+                confidence: 0.96,
+                resultHtml: `
+                    <div class="space-y-4 w-full">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                            <span class="text-xs font-bold text-emerald-400 flex items-center">
+                                <i class="fa-solid fa-circle-check mr-1.5"></i> 结构化提取成功
+                            </span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">置信度: 96%</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800">
+                                <div class="text-xs text-slate-400 mb-1">任务 1：调优 OpenVINO 算子</div>
+                                <div class="text-xs text-slate-200 font-medium">负责人: <strong>张工</strong> | 截止: <strong>下周三</strong></div>
+                                <div class="text-[11px] text-slate-500 mt-1">示例引用: "张工负责下周三前调优 OpenVINO 算子"</div>
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-800">
+                                <div class="text-xs text-slate-400 mb-1">硬件约束：内存预算红线</div>
+                                <div class="text-xs text-amber-300 font-medium">示例需求：峰值控制在 <strong>2GB 以内</strong></div>
+                                <div class="text-[11px] text-slate-500 mt-1">示例引用: "陈总要求整体内存占用严格控制在 2GB 以内。"（待实测）</div>
+                            </div>
+                        </div>
+                    </div>`
+            },
+            edge: {
+                title: "方案分歧/冲突预警",
+                input: "王经理建议把所有的文件做全量向量化，但李架构师反对，认为当前设备只有 8GB 内存，做全量会拖垮整个 NAS 系统，建议只做增量。",
+                steps: ["正在检测语义冲突点...", "识别到两项技术路线分歧...", "挂起流程并等待人工裁决..."],
+                confidence: 0.52,
+                resultHtml: `
+                    <div class="p-4 bg-amber-950/30 border border-amber-800/80 rounded-xl space-y-3 w-full">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-amber-300 flex items-center">
+                                <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> 检测到方案严重冲突 (需人工二审裁决)
+                            </span>
+                            <span class="text-xs font-mono bg-amber-900/60 text-amber-200 px-2 py-0.5 rounded">AWAITING_CONFIRM</span>
+                        </div>
+                        <p class="text-xs text-amber-200/90 leading-relaxed">模拟冲突场景：一方要求全量，另一方认为示例中的 8GB 设备可能有 OOM 风险。请先确认需要哪些证据：</p>
+                        <div class="flex space-x-3 pt-1">
+                            <button onclick="resolveConflict('增量方案')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3.5 py-1.5 rounded-lg transition font-medium">采纳李工：仅做增量 (推荐)</button>
+                            <button onclick="resolveConflict('全量方案')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3.5 py-1.5 rounded-lg transition">采纳王经理：坚持全量</button>
+                        </div>
+                    </div>`
+            },
+            fallback: {
+                title: "算力繁忙/降级场景",
+                input: "要求即时执行大规模多模态聚类并渲染三维图谱。",
+                steps: ["发送推理请求...", "检测到边缘端并发超限...", "启动优雅降级状态机..."],
+                confidence: 0.0,
+                resultHtml: `
+                    <div class="p-4 bg-rose-950/30 border border-rose-800/80 rounded-xl space-y-2 w-full text-rose-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold flex items-center">
+                                <i class="fa-solid fa-circle-xmark mr-1.5"></i> 504_TIMEOUT (边缘计算资源满载)
+                            </span>
+                            <span class="text-xs font-mono bg-rose-900/60 text-rose-300 px-2 py-0.5 rounded">DEGRADED</span>
+                        </div>
+                        <p class="text-xs leading-relaxed text-rose-300/80">模拟超时场景：演示界面切换至降级状态。真实系统是否自动降级，需由服务端实现并验证。</p>
+                    </div>`
+            }
+        };
+
+        function selectScenario(type) {
+            currentScenario = type;
+            ['happy', 'edge', 'fallback'].forEach(t => {
+                const btn = document.getElementById(`sc-${t}`); if (t === type) {btn.className = "w-full text-left px-3.5 py-2.5 rounded-lg text-xs bg-indigo-950 border border-indigo-700 text-indigo-200 font-medium transition";} else {btn.className = "w-full text-left px-3.5 py-2.5 rounded-lg text-xs bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 transition";}
+            }); document.getElementById('input-hint').innerText = `当前场景: ${scenarios[type].title}`;
+            document.getElementById('user-input').value = scenarios[type].input;
+        }
+
+        function toggleEngineMode() {
+            const select = document.getElementById('engine-mode-select');
+            currentMode = select.value;
+            const configDrawer = document.getElementById('real-api-config');
+            const label = document.getElementById('current-engine-label');
+
+            if (currentMode === 'real') {
+                configDrawer.classList.remove('hidden');
+                label.innerText = "临时 Key 直连（脱敏演示）";
+                label.className = "text-indigo-400 font-mono";
+            } else {
+                configDrawer.classList.add('hidden');
+                label.innerText = "仿真离线引擎";
+                label.className = "text-emerald-400 font-mono";
+            }
+        }
+
+        async function handleTriggerExecution() {
+            const stateEl = document.getElementById('current-state');
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const workspace = document.getElementById('result-workspace');
+            const dump = document.getElementById('sse-dump');
+            const badge = document.getElementById('harness-badge');
+
+            stateEl.innerText = "STREAMING_THINKING";
+            indicator.classList.remove('hidden');
+            badge.classList.remove('hidden');
+            workspace.innerHTML = "";
+            dump.textContent = `> [Prototype Demo]\n> Provider request (stream=true)\n`;
+
+            if (currentMode === 'mock') {
+                const sc = scenarios[currentScenario];
+                for (let i = 0; i < sc.steps.length; i++) {
+                    statusText.innerText = sc.steps[i];
+                    dump.textContent += `> simulated event: thinking (step: "${sc.steps[i]}")\n`; dump.scrollTop = dump.scrollHeight; await new Promise(r => setTimeout(r, 400));
+                } indicator.classList.add('hidden'); stateEl.innerText = currentScenario === 'fallback' ? "FALLBACK_ERROR" : (currentScenario === 'edge' ? "AWAITING_CONFIRM" : "DEMO_COMPLETE"); dump.textContent += `> simulated result (confidence: ${sc.confidence})\n> [DEMO_COMPLETE]\n`;
+                workspace.innerHTML = sc.resultHtml;
+            } else {
+                const baseUrl = document.getElementById('api-base').value.trim();
+                const apiKey = document.getElementById('api-key').value.trim();
+                const model = document.getElementById('model-name').value.trim();
+                const userPrompt = document.getElementById('user-input').value.trim();
+
+                if (!apiKey) {
+                    alert("请在右侧面板输入 API Key！");
+                    indicator.classList.add('hidden');
+                    stateEl.innerText = "IDLE";
+                    return;
+                }
+
+                statusText.innerText = "正在直连模型；仅展示文本，不执行 Schema 或语义校验...";
+                workspace.innerHTML = `<div id="live-stream-box" class="w-full text-slate-200 markdown-body"></div>`;
+                const streamBox = document.getElementById('live-stream-box');
+                let accumulatedText = "";
+
+                try {
+                    const response = await fetch(`${baseUrl}/chat/completions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        }, body: JSON.stringify({model: model, messages: [{role: "system", content: "你是一个专业的架构分析助手。必须严格输出符合 Markdown 格式的结构化表格，表头严格限定为：\vert{} 要素 \vert{} 提取结果 \vert{} 置信度 \vert{} 原文溯源 \vert{}。严禁漏掉原文溯源列。"}, {role: "user", content: userPrompt}], stream: true})
+                    }); if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    indicator.classList.add('hidden');
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder("utf-8");
+
+                    while (true) {
+                        const {done, value} = await reader.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split("\n");
+                        for (const line of lines) {
+                            if (line.startsWith("data: ") && line !== "data: [DONE]") {
+                                try {
+                                    const json = JSON.parse(line.substring(6));
+                                    const delta = json.choices[0]?.delta?.content || "";
+                                    if (delta) {
+                                        accumulatedText += delta;
+                                        streamBox.textContent = accumulatedText;
+                                    }
+                                } catch (e) { }
+                            }
+                        }
+                    }
+
+                    // Prototype-only textual indicator; not schema validation or a runtime guard.
+                    if (!accumulatedText.includes("原文溯源") || !accumulatedText.includes("置信度")) {
+                        dump.textContent += `> ⚠️ [Demo Check] 回复文本可能缺少预期标签；未触发修复或阻断。\n`;
+                    } else {
+                        dump.textContent += `> ℹ️ [Demo Check] 找到预期文本标签；这不是 Schema 或语义校验。\n`;
+                    }
+
+                    stateEl.innerText = "DEMO_COMPLETE";
+                    dump.textContent += `> [STREAM_COMPLETED]\n`;
+                    dump.scrollTop = dump.scrollHeight;
+                } catch (err) {
+                    indicator.classList.add('hidden');
+                    stateEl.innerText = "REQUEST_ERROR";
+                    workspace.textContent = `调用异常: ${err.message}`;
+                }
+            }
+        } function resolveConflict(choice) {
+            alert(`演示确认：${choice}。没有执行或归档真实业务操作。`);
+            document.getElementById('current-state').innerText = "DEMO_COMPLETE";
+        }
+    </script>
+</body>
+
+</html>
