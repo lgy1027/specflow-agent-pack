@@ -1,14 +1,25 @@
 # SpecFlow Agent Pack
 
-**把模糊的项目想法，变成团队能评估、能验证的下一步。**
+**先把问题问对，再决定要不要做、怎么验证。**
 
-SpecFlow 是一组面向 FDE、产品经理和研发团队的 Agent Skills，用于开发前的需求探索和交付准备。它帮助团队先厘清用户问题、已有证据、关键未知和验证路径，再决定要不要继续做契约、原型或试点。
+SpecFlow 是面向 FDE、产品经理和研发团队的一组可组合 Agent Skills，帮助团队在投入开发或现场试点前，厘清目标、证据、关键未知和下一步验证方式。
 
 它适用于软件、内部工具、客户项目、AI 应用和智能硬件等工作，不绑定行业、产品形态或技术栈。AI、硬件与具身场景是重点支持方向，但不是使用前提。
 
-## 为什么用 SpecFlow
+## 它如何工作
 
-项目早期常见的困难不是缺少实现方案，而是目标不清、关键条件未核实、角色之间对“完成”的理解不一致。SpecFlow 把这些问题前置处理，帮助团队：
+从一个实际问题开始，例如“客户要两周内做睡眠监测演示，我们现在该不该接？”SpecFlow 不会默认把用户提出的方案直接变成开发任务，而是先帮助团队回答：
+
+1. **要做什么决定？** 明确当前要拍板的问题、目标和约束。
+2. **我们知道什么？** 区分已确认事实、他人说法、推断和未知；必要时先追问会改变结论的信息。
+3. **风险和缺口在哪里？** 结合当前证据评估可行路径、依赖、授权、安全和验收边界。
+4. **最小的可信下一步是什么？** 可能是补充对齐、验证一个假设、做有限原型或制定试点；信息不足时也可以停在澄清阶段。
+
+这些是由用户按需调用的 Skills，不是会自动替团队拍板、执行完整交付流程或控制生产系统的后台平台。
+
+## 适合解决的问题
+
+项目早期常见的困难不是缺少实现方案，而是目标不清、关键条件未核实、角色之间对“完成”的理解不一致。SpecFlow 帮助团队：
 
 - 通过少量有针对性的追问，澄清需求和决策目标；
 - 区分证据、说法、推断与未知，避免把假设写成事实；
@@ -40,7 +51,11 @@ SpecFlow 是一组面向 FDE、产品经理和研发团队的 Agent Skills，用
 
 ### 安装
 
-需要 Node.js 22.20 或更新版本。使用 [skills CLI](https://www.skills.sh/docs/cli)，可从 GitHub 直接安装单个 Skill 或整套技能：
+每个 `skills/<name>/` 目录都是一个独立 Skill。安装时保留整个目录，包括 `SKILL.md`、`references/`、`templates/` 和可选的 `scripts/`；只复制 `SKILL.md` 会丢失配套资源。
+
+#### Claude Code、Codex、Hermes Agent
+
+需要 Node.js 22.20 或更新版本。使用 [skills CLI](https://www.skills.sh/docs/cli) 从 GitHub 安装单个 Skill 或整套 Skills：
 
 ```powershell
 # 先试用需求探索
@@ -50,9 +65,19 @@ npx skills add lgy1027/specflow-agent-pack --skill probe -a codex
 npx skills add lgy1027/specflow-agent-pack --skill "*" -a claude-code -a codex -a hermes-agent --copy -y
 ```
 
-省略 `-a` 可按 CLI 提示选择 Agent。若要从本地克隆目录安装，把仓库地址替换为 `.` 并在仓库根目录运行。
+省略 `-a` 可按提示选择 Agent。从本地克隆目录安装时，在仓库根目录将仓库地址替换为 `.`。`--copy` 适合 Windows 环境，避免创建符号链接。
 
-DeepSeek Harness 和 WorkBuddy 的加载方式不同，WorkBuddy 还需要平台专用元数据。请参考[跨 Agent 安装说明](INSTALLATION.md)。安装说明描述的是加载方式，不代表每种客户端或企业环境都已完成实测。
+| Agent | 安装方式 / 项目级目录 |
+|---|---|
+| Claude Code | `skills` CLI；或复制到 `.claude/skills/<name>/`。 |
+| Codex | `skills` CLI；或复制到 `.agents/skills/<name>/`，在项目目录启动 Codex。可用 `$probe` 显式调用。 |
+| Hermes Agent | `skills` CLI；或复制到 `.hermes/skills/<name>/` / `.agents/skills/<name>/`。若提示未信任项目 Skills，在仓库根目录运行 `hermes skills trust .`。 |
+| DeepSeek Harness | 手动复制到 `.agents/skills/<name>/` 或 `.dsh/skills/<name>/`。每个 Skill 直接放在目标目录下一层。 |
+| WorkBuddy | 在 **Experts → Skills → Connectors → Skills** 通过 **Add Skill / Create Skill** 导入。需保留 Skill 配套目录，并按平台要求添加展示元数据、调整引用格式；当前仓库源文件不是可直接导入的 WorkBuddy 成品包。导入后在新对话确认 Skill 和引用资料均能加载。 |
+
+Claude Code 和 Codex 也支持 **Plugin** 分发，但 Plugin 不等同于通用 Skill。当前仓库只有 Agent Skills，**没有** Claude Marketplace 清单或 Codex `plugin.json` 包装，因此请用上面的 Skills 安装方式，不要使用 Plugin 安装命令。以后如提供插件包：Claude Code 从 Marketplace 添加并安装，Codex 从 Plugins 界面或本地 Marketplace 安装；具体命令和清单按发布包提供。官方文档：[Claude Code Plugins](https://code.claude.com/docs/en/plugins)、[Codex Plugins](https://developers.openai.com/plugins/concepts/plugins)。
+
+安装后在新会话确认 Skill 出现在可用列表中；按需验证 `/probe` 可读取 `references/`、`/proto` 可读取 `templates/`。`pilot` 的可选脚本需要目标环境支持 Python；不能运行时标记为未机械校验。不同 Agent 的加载行为可能变化，安装说明不代表每个版本或企业环境都已实测。WorkBuddy 平台参考：[Skill 文档](https://open.workbuddy.cn/en/docs/skill)。
 
 ### 使用
 

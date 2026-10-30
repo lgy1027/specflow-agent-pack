@@ -14,7 +14,7 @@
 
 - 每个 Skill 位于 `skills/<name>/`，`SKILL.md` 的 `name` 与目录名保持一致。
 - Skill 的原始版本保存在 `skills/`。Agent 安装目录中的副本不要提交回源目录。
-- 支持文件放在所属 Skill 的 `references/` 或 `templates/`，并从 `SKILL.md` 按需引用。
+- 支持文件按用途放在所属 Skill 的 `references/`、`templates/` 或 `scripts/`，并从 `SKILL.md` 按需引用；仅在重复逻辑确实适合确定性执行时增加脚本。
 - 对某个平台有特殊元数据或路径要求时，优先提供独立适配副本，不要让平台专用字段破坏通用版本。
 
 ## 评审与验证

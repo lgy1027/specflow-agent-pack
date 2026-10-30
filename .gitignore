@@ -22,6 +22,9 @@ prototypes/
 # Internal competition material; not part of the public release
 contest/
 
+# Local raw evaluation transcripts and environment-specific run records
+evals/runs/
+
 # OS/editor noise
 .DS_Store
 Thumbs.db
