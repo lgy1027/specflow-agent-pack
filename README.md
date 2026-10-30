@@ -1,5 +1,7 @@
 # SpecFlow Agent Pack
 
+[English](README.en.md) | 简体中文
+
 **先把问题问对，再决定要不要做、怎么验证。**
 
 SpecFlow 是面向 FDE、产品经理和研发团队的一组可组合 Agent Skills，帮助团队在投入开发或现场试点前，厘清目标、证据、关键未知和下一步验证方式。
